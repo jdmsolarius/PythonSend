@@ -1,0 +1,2 @@
+C:\Users\jdmso\source\repos\ProteinViewer\obj\Any CPU\Release\ProteinViewer.pyproj.CoreCompileInputs.cache
+C:\Users\jdmso\source\repos\ProteinRepo\obj\Any CPU\Release\ProteinViewer.pyproj.CoreCompileInputs.cache

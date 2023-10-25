@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>4b7b86c1-e3e7-485f-99d4-ff09ffa74868</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <ProjectTypeGuids>{789894c7-04a9-4a11-a6b5-3f4435165112};{1b580a1a-fdb3-4b32-83e1-6407eb2722e6};{349c5851-65df-11da-9384-00065b846f21};{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <StartupFile>runserver.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <LaunchProvider>Web launcher</LaunchProvider>
+    <WebBrowserUrl>http://localhost</WebBrowserUrl>
+    <OutputPath>.</OutputPath>
+    <SuppressCollectPythonCloudServiceFiles>true</SuppressCollectPythonCloudServiceFiles>
+    <Name>ProteinViewer</Name>
+    <RootNamespace>ProteinViewer</RootNamespace>
+    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="ProteinViewer\Database.py" />
+    <Compile Include="ProteinViewer\PDBMetaData.py" />
+    <Compile Include="ProteinViewer\Protein.py" />
+    <Compile Include="ProteinViewer\Uniprot_Items.py" />
+    <Compile Include="runserver.py" />
+    <Compile Include="ProteinViewer\__init__.py" />
+    <Compile Include="ProteinViewer\views.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+    <Folder Include="Properties\PublishProfiles\" />
+    <Folder Include="ProteinViewer\" />
+    <Folder Include="ProteinViewer\static\" />
+    <Folder Include="ProteinViewer\static\content\" />
+    <Folder Include="ProteinViewer\static\fonts\" />
+    <Folder Include="ProteinViewer\static\scripts\" />
+    <Folder Include="ProteinViewer\templates\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Properties\PublishProfiles\ProteinViewer - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\ProteinViewer - ReadOnly - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - FTP1.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - Web Deploy1.pubxml" />
+    <None Include="Properties\PublishProfiles\ProteinViewer - Web Deploy2.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - FTP2.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - Web Deploy2.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - FTP3.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - Web Deploy3.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - FTP4.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - Web Deploy4.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - FTP5.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - Web Deploy5.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - FTP6.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - Web Deploy6.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - FTP7.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - Web Deploy7.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - FTP8.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - Web Deploy8.pubxml" />
+    <None Include="Properties\PublishProfiles\ProteinView - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\ProteinView - Web Deploy1.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - FTP9.pubxml" />
+    <None Include="Properties\PublishProfiles\WashuProteinViewer - Web Deploy9.pubxml" />
+    <None Include="Properties\PublishProfiles\WProteinViewer - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\WProteinViewer - Web Deploy.pubxml" />
+    <Content Include="ProteinViewer\static\scripts\gui.js" />
+    <Content Include="ProteinViewer\static\scripts\ngl.js" />
+    <Content Include="requirements.txt" />
+    <Content Include="ProteinViewer\static\content\bootstrap.css" />
+    <Content Include="ProteinViewer\static\content\bootstrap.min.css" />
+    <Content Include="ProteinViewer\static\content\site.css" />
+    <Content Include="ProteinViewer\static\fonts\glyphicons-halflings-regular.eot" />
+    <Content Include="ProteinViewer\static\fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="ProteinViewer\static\fonts\glyphicons-halflings-regular.ttf" />
+    <Content Include="ProteinViewer\static\fonts\glyphicons-halflings-regular.woff" />
+    <Content Include="ProteinViewer\static\scripts\bootstrap.js" />
+    <Content Include="ProteinViewer\static\scripts\bootstrap.min.js" />
+    <Content Include="ProteinViewer\static\scripts\jquery-1.10.2.intellisense.js" />
+    <Content Include="ProteinViewer\static\scripts\jquery-1.10.2.js" />
+    <Content Include="ProteinViewer\static\scripts\jquery-1.10.2.min.js" />
+    <Content Include="ProteinViewer\static\scripts\jquery-1.10.2.min.map" />
+    <Content Include="ProteinViewer\static\scripts\jquery.validate-vsdoc.js" />
+    <Content Include="ProteinViewer\static\scripts\jquery.validate.js" />
+    <Content Include="ProteinViewer\static\scripts\jquery.validate.min.js" />
+    <Content Include="ProteinViewer\static\scripts\jquery.validate.unobtrusive.js" />
+    <Content Include="ProteinViewer\static\scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="ProteinViewer\static\scripts\modernizr-2.6.2.js" />
+    <Content Include="ProteinViewer\static\scripts\respond.js" />
+    <Content Include="ProteinViewer\static\scripts\respond.min.js" />
+    <Content Include="ProteinViewer\static\scripts\_references.js" />
+    <Content Include="ProteinViewer\templates\about.html" />
+    <Content Include="ProteinViewer\templates\contact.html" />
+    <Content Include="ProteinViewer\templates\index.html" />
+    <Content Include="ProteinViewer\templates\layout.html" />
+    <Content Include="ProteinViewer\static\content\secrets.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="env\">
+      <Id>env</Id>
+      <Version>3.9</Version>
+      <Description>env (Python 3.9 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.Web.targets" />
+  <!-- Specify pre- and post-build commands in the BeforeBuild and 
+       AfterBuild targets below. -->
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <AutoAssignPort>True</AutoAssignPort>
+          <UseCustomServer>True</UseCustomServer>
+          <CustomServerUrl>http://localhost</CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}" User="">
+        <WebProjectProperties>
+          <StartPageUrl>
+          </StartPageUrl>
+          <StartAction>CurrentPage</StartAction>
+          <AspNetDebugging>True</AspNetDebugging>
+          <SilverlightDebugging>False</SilverlightDebugging>
+          <NativeDebugging>False</NativeDebugging>
+          <SQLDebugging>False</SQLDebugging>
+          <ExternalProgram>
+          </ExternalProgram>
+          <StartExternalURL>
+          </StartExternalURL>
+          <StartCmdLineArguments>
+          </StartCmdLineArguments>
+          <StartWorkingDirectory>
+          </StartWorkingDirectory>
+          <EnableENC>False</EnableENC>
+          <AlwaysStartWebServerOnDebug>False</AlwaysStartWebServerOnDebug>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

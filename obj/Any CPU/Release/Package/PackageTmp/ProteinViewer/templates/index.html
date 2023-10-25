@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/static/content/site.css" rel="stylesheet">
+    <link href="/static/content/bootstrap.min.css" rel="stylesheet">
+    <script src="/static/scripts/ngl.js"></script>
+    <script src="/static/scripts/gui.js"></script>
+
+
+    <title>Protein Viewer</title>
+    <title id="titleHidden"></title>
+
+    <script>
+     
+        var proteinNameMap = {{ Protein_Name_Map | tojson }};
+        document.getElementById('titleHidden').innerHTML = proteinNameMap;
+
+    </script>
+
+
+
+</head>
+<body style="padding: 5px; padding-top: 2px; padding-left: 2px;">
+
+    <div class="zoom-controls">
+         Zoom Level:
+        <input type="range" min="1" max="5" value="3" title="Zoom" id="zoomSlider">
+    </div>
+
+    <div class="instructions" style="font-size: 11px; margin-left: -22px !important">
+        <ul>
+            <li>Use the zoom slider above to adjust magnification.To alter a setting press Enter</li>
+            <li>For a clearer view of chemical bonds, change the background color to <strong>white</strong>.</li>
+            <li>Toggle between visual representations using the "Representation" dropdown.</li>
+        </ul>
+    </div>
+
+    <div class="download-options" id="downloadText">
+        <h4>Download Options:</h4>
+        <div class="button-row">
+            <button id="DownloadSequenceData">Download Data</button> <button id="downloadPDB">Download PDB</button> <button id="downloadPNG">Download PNG</button>
+        </div>
+    </div>
+
+    <div class="container" style="margin-top:-100px !important;">
+
+        <!-- Search for a Protein Section -->
+        <div class="my-4" style="display: flex; align-items: center; justify-content: center;">
+            <h3>Search for a Protein</h3>
+
+            <form id="proteinForm" method="POST" action="/" style="display: flex; flex-grow: 1; align-items: center;">
+                <input type="text" class="form-control" id="uniprot_Id" value="SARM1" name="uniprot_Id" required style="margin-right: 10px;">
+                <button type="button" id="fetchAndView" class="btn btn-primary">Go</button>
+            </form>
+
+        </div>
+
+        <!-- Visualization Section -->
+        <h2 id="ProteinText">Human Protein Name: SARM1 PDB Visualization and Heat Maps (Quadrants)</h2>
+
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 25px;">
+
+            <!-- 3D Protein Structure -->
+            <div id="pdb-container" style="position:relative; flex: 1; padding-right: 5px;">
+                <div id="viewport" style="width:625px; height:625px;"></div>
+                <div id="gui-container"></div>
+            </div>
+
+            <!-- Protein Image -->
+            <div style="flex: 2; max-width: 1400px;">
+                <div id="ImageContainer">
+                    <div class="spinner" id="spinner" hidden="hidden"></div>
+                    <img id="proteinImage" src="fetch_image/{{ initialUniprot_Id }}" alt="Space For HeatMaps." width="1500" height="663" style="max-width: 127%;" />
+                </div>
+            </div>
+
+        </div>
+
+        <div style="background-color: #f4f4f4;padding: 20px;font-family: Arial, sans-serif;width:1375px !important">
+
+            <!-- Title -->
+            <h1 style="font-size: 24px; margin-bottom: 15px;">Amino Acid Table</h1>
+
+            <!-- Subheading -->
+            <h2 style="font-size: 18px; margin-bottom: 10px; color: #555;">Data sourced from Google Deepmind</h2>
+
+            <!-- Container for both lists -->
+            <div style="display: flex; justify-content: space-between;">
+
+                <!-- Explanation - First List -->
+                <ul style="list-style-type: disc; margin-top: 10px; font-size: 16px; flex: 1; margin-right: 20px;">
+                    <li>
+                        Deepmind categorizes:
+                        <ul style="list-style-type: circle;">
+                            <li><span style="color: red;">P > 0.775</span> as Extremely Pathogenic  *(this is my own subcategory)*
+                            <li><span style="color: coral;">P > 0.565</span> as Pathogenic
+                            <li><span style="color: goldenrod;"> P > 0.340 </span> as Mild/Ambiguous</li>
+                            <li><span style="color: green;">P <= 0.340 </span> as Benign</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <!-- Second List -->
+                <ul style="font-size: 16px; flex: 1;">
+                    <li>
+                        The Median was used as the measure of center for three reasons:
+                        <ol>
+                            <li>The number of observations was small (only 19 per position).</li>
+                            <li>The data is highly skewed.</li>
+                            <li>The median represents a true pathogenicity value at a point not a value we assume possible  </li>
+                        </ol>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- Amino Acids Data -->
+        <div style="width: 120%; background-color: black;">
+            <div style="font-size:14px;font-weight:bold;color:white"></div>
+            <div class="spinner" id="spinner2" hidden="hidden"></div>
+            <div id="aminoDataContainer">
+                <!-- Amino acid data will be displayed here -->
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <script>
+        //Spinners.
+        // Function to make buttons invisible
+        function hideButtons() {
+            document.getElementById("DownloadSequenceData").style.display = "none";
+            document.getElementById("downloadPDB").style.display = "none";
+            document.getElementById("downloadPNG").style.display = "none";
+            document.getElementById("downloadText").style.display = "none";
+        }
+
+        // Function to make buttons visible
+        function showButtons() {
+            document.getElementById("DownloadSequenceData").style.display = "block";
+            document.getElementById("downloadPDB").style.display = "block";
+            document.getElementById("downloadPNG").style.display = "block";
+            document.getElementById("downloadText").style.display = "block";
+        }
+        hideButtons();
+        function stopSpinner() {
+            var spinner = document.getElementById('spinner');
+            spinner.style.display = 'none';
+            spinner.setAttribute("hidden", "hidden"); // Set the hidden attribute
+        }
+
+        function startSpinner() {
+            var spinner = document.getElementById('spinner');
+            spinner.style.display = 'block';
+            spinner.removeAttribute("hidden"); // Remove the hidden attribute
+        }
+        function startSpinner2() {
+            var spinner = document.getElementById('spinner2');  // Removed the dot before 'spinner'
+            spinner.removeAttribute('hidden');
+        }
+        function stopSpinner2() {
+            var spinner = document.getElementById('spinner2');
+            spinner.hidden = true;
+        }
+
+        var stage = new NGL.Stage("viewport");
+        class NGLGuiHandler {
+            constructor() {
+                this.guiParams = {
+                    representation: "cartoon", fogNear: 40,
+                    fogFar: 95,
+                    lightIntensity: 1.05,
+                    ambientIntensity: 0.6,
+                    bgColor: "black",
+                    zoomLevel: 100,
+                    spin: false,
+                    wireframe: false
+                };
+                this.initGUI();
+                if (component) {
+                    this.applyGUISettings(component);
+                }
+                else {
+                    this.applyGUISettings()
+                }
+            }
+
+            initGUI() {
+                if (!this.gui) {
+                    const guiContainer = document.getElementById('gui-container');
+                    if (!guiContainer.firstChild) {
+                        this.gui = new dat.GUI({ autoPlace: false });
+                        guiContainer.appendChild(this.gui.domElement);
+                    }
+                    else {
+                        this.gui = new dat.GUI({ autoPlace: false });
+                        guiContainer.replaceChild(this.gui.domElement, guiContainer.firstChild);
+                    }
+
+                    // Add GUI controls
+                    this.gui.add(this.guiParams, 'representation', ['cartoon', 'ball+stick', 'surface', 'hyperball', 'backbone']).name('Representation').onChange(this.updateRepresentation.bind(this));
+                    this.gui.add(this.guiParams, 'spin').name('Toggle Spin').onChange(value => stage.setSpin(value));
+                    for (let paramName in stage.parameters) {
+                        let param = stage.parameters[paramName];
+                        let name = paramName;
+                        console.log("parameter Name: " + name);
+
+                        // Checking if param is an array or an object
+                        if (Array.isArray(param)) {
+                            console.log("It's an array with values: " + param);
+                        } else if (typeof param === 'object') {
+                            console.log("Possible Entries (keys): " + Object.keys(param));
+                            console.log("Possible Entries (vals): " + Object.values(param));
+                        } else {
+                            console.log("It's a different type with value: " + param);
+                        }
+                    }
+
+                    this.gui.add(this.guiParams, 'bgColor').name('Background Color').onChange(value => stage.setParameters({ backgroundColor: value }));
+                    this.gui.add(this.guiParams, 'fogNear', 0, 70).name('Fog Near').onChange(value => stage.setParameters({ fogNear: value }));
+                    this.gui.add(this.guiParams, 'fogFar', 0, 150).name('Fog Far').onChange(value => stage.setParameters({ fogFar: value }));
+                    this.gui.add(this.guiParams, 'lightIntensity', 0, 2).name('Light Intensity').onChange(value => stage.setParameters({ lightIntensity: value }));
+                    this.gui.add(this.guiParams, 'ambientIntensity', 0, 2).name('Ambient Intensity').onChange(value => stage.setParameters({ ambientIntensity: value }));
+
+
+                }
+            }
+            updateWireFrame(value) {
+                if (value === true) {
+                    document.getElementById('viewport').style.backgroundColor = "white";
+                } else {
+                    document.getElementById('viewport').style.backgroundColor = "black";
+                }
+            }
+            updateRepresentation(value, component) {
+                if (component) {
+                    component.removeAllRepresentations();
+                    component.addRepresentation(value, { color: value });
+
+                }
+            }
+
+            updateColor(component) {
+                if (component) {
+                    component.eachRepresentation((representation) => {
+                        representation.setColor("myScheme");
+                        representation.update();
+                    });
+                }
+            }
+
+            applyGUISettings(component) {
+                stage.setSpin(this.guiParams.spin);
+                stage.setParameters({
+                    backgroundColor: this.guiParams.bgColor,
+                    fogIntensity: this.guiParams.fogIntensity,
+                    lighting: this.guiParams.lighting,
+                    wireframe: this.guiParams.wireframe,
+                    opacity: this.guiParams.opacity,
+                    fogNear: this.guiParams.fogNear,         // Apply fogNear
+                    fogFar: this.guiParams.fogFar,           // Apply fogFar
+                    lightIntensity: this.guiParams.lightIntensity, // Apply lightIntensity
+                    ambientIntensity: this.guiParams.ambientIntensity, // Apply ambientIntensity
+                });
+
+                this.updateRepresentation(this.guiParams.representation, component);
+            }
+        }
+
+
+        const zoomLevels = [0.4, 0.6, 1, 1.7, 2.65];
+        let component = null;
+        let nglGui = null;
+        let atomStore = null
+        let nglColors = null
+        nglGui = new NGLGuiHandler();
+        let currentRepresentation = "cartoon"; // Initial representation
+        let firstAtomIndex = null;
+
+
+        document.getElementById('fetchAndView').addEventListener('click', function () {
+            const uniprot_Id = document.getElementById('uniprot_Id').value;
+            if (uniprot_Id) {
+                try {
+                    let uniprotIdUpper = uniprot_Id.toUpperCase();
+
+                    if (!(Object.values(proteinNameMap).includes(uniprotIdUpper)) &&
+                        !(Object.keys(proteinNameMap).includes(uniprotIdUpper)) &&
+                        !(uniprotIdUpper.toUpperCase().startsWith("ENSG0"))) {
+                            "Protein is not a known Human Protein, if you are sure it exists search by UniprotId or Ensembl Id instead."
+                            return;
+                        }
+
+                 
+                    fetchPDBAndVisualize(uniprot_Id.toUpperCase());
+                    fetchPNGandVisualize(uniprot_Id.toUpperCase());
+                    showButtons()
+                } catch (error) {
+                    console.error("An error occurred:", error);
+                    alert("your Protein was not found in the database, try searching by another name or by Ensembl or UniprotId instead. The results are limited to Humans.")
+                }
+            }
+        });
+
+        function fetchPNGandVisualize(uniprot_Id) {
+            startSpinner();
+            document.getElementById('ImageContainer').querySelector('img').style.visibility = "hidden";
+            fetch(`/fetchImage/${uniprot_Id}`)
+                .then(response => {
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok: ' + response.statusText);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const pngBlobUrl = URL.createObjectURL(blob);
+
+                    document.getElementById('ImageContainer').querySelector('img').src = pngBlobUrl;
+                    stopSpinner();
+                    document.getElementById('ImageContainer').querySelector('img').style.visibility = "";
+                    document.getElementById("downloadPNG").addEventListener("click", function () {
+                        const imgElement = document.getElementById('ImageContainer').querySelector('img');
+                        const pngBlobUrl = imgElement.src;
+                        const link = document.createElement("a");
+                        link.href = pngBlobUrl;
+                        link.download = "image.png";
+                        link.click();
+                    });
+                })
+                .catch(error => {
+                    console.error('There has been a problem with your fetch operation:', error);
+                });
+        }
+
+
+        function applyStylesToClasses() {
+            const classNames = ["cr", "c", "property-name"];
+            for (const className of classNames) {
+                const elements = document.getElementsByClassName(className);
+                for (const element of elements) {
+                    element.style.fontSize = "12.5px";
+                    element.style.fontWeight = "bold";
+                }
+            }
+        }
+
+        function setZoomLevel(level) {
+            stage.viewer.camera.zoom = level;
+            stage.viewer.requestRender();
+        }
+
+        function ZoomSlider() {
+            const slider = document.getElementById("zoomSlider");
+            slider.addEventListener("change", () => setZoomLevel(zoomLevels[slider.value - 1]));
+            document.getElementById("viewport").addEventListener("wheel", function (e) {
+                e.preventDefault();
+                const currentIndex = zoomLevels.indexOf(nglGui.guiParams.zoomLevel);
+                slider.value = e.deltaY < 0 ? currentIndex : currentIndex + 2;
+                setZoomLevel(zoomLevels[slider.value - 1]);
+            });
+        }
+        function getMedian(arr) {
+            arr.sort((a, b) => a - b);
+
+            const mid = Math.floor(arr.length / 2);
+
+            // If even number of elements, return average of middle two
+            if (arr.length % 2 === 0) {
+                return (arr[mid - 1] + arr[mid]) / 2;
+            }
+            // If odd number of elements, return the middle one
+            else {
+                return arr[mid];
+            }
+        }
+
+        function getAverage(arr) {
+            let sum = 0;
+            let length = arr.length;
+
+            if (length == 20) {
+                length = 19;
+                // Assuming you want to exclude the last value; if not, adjust accordingly.
+                arr.pop();
+            }
+
+            for (let i = 0; i < arr.length; i++) {
+                sum += parseFloat(arr[i]);
+            }
+
+            return sum / length;
+        }
+        setZoomLevel(1);
+        function configureRepresentation(comp) {
+            // Set up the custom color scheme
+            NGL.ColormakerRegistry.add("myScheme", function (params) {
+                this.atomColor = function (atom) {
+                    let colorArray = myColorScheme(atom);
+                    return new NGL.Color(colorArray[0] / 255, colorArray[1] / 255, colorArray[2] / 255).getHex();
+                };
+
+                this.atomColorToArray = function (atom, array, offset) {
+                    let colorArray = myColorScheme(atom);
+                    array[offset] = colorArray[0];
+                    array[offset + 1] = colorArray[1];
+                    array[offset + 2] = colorArray[2];
+                };
+
+                this.bond = function (bond, array, offset) {
+                    return 0x808080; // Hexadecimal for grey
+                }
+
+                this.bondColorToArray = function (bond, array, offset) {
+                    array[offset] = 128;    // R component for grey
+                    array[offset + 1] = 128; // G component for grey
+                    array[offset + 2] = 128; // B component for grey
+                };
+
+                this.name = "myScheme";
+            });
+
+            applyStylesToClasses();
+            ZoomSlider();
+
+            const representations = ['cartoon', "ball+stick", 'surface', 'backbone', 'Spacefill', 'Licorice'];
+            const representationDropdown = document.querySelector('select');
+
+            nglGui.gui.add(nglGui.guiParams, 'wireframe').name('Wireframe').onChange(value => {
+                if (value) {
+                    stage.setParameters({ backgroundColor: "white" });
+
+                    if (comp) {
+                        comp.removeAllRepresentations();
+                        comp.addRepresentation('backbone', { bondColor: "grey", bondScale: 0.5, color: "myScheme" });
+                    }
+                } else {
+                    stage.setParameters({ backgroundColor: "black" });
+
+                    if (comp) {
+                        comp.removeAllRepresentations();
+                        comp.addRepresentation('cartoon', { bondColor: "grey", bondScale: 0.5, color: "myScheme" });
+                    }
+                }
+            });
+            representationDropdown.innerHTML = '';
+
+            // Add new representations to the dropdown
+            representations.forEach(rep => {
+                const option = document.createElement('option');
+                option.value = rep;
+                option.innerText = rep;
+                representationDropdown.appendChild(option);
+            });
+
+            if (nglGui !== null) {
+                const handleRepresentationChange = function (event) {
+                    const selectedRepresentation = event.target.value;
+
+                    if (comp) {
+                        comp.removeAllRepresentations();
+                        comp.addRepresentation(selectedRepresentation, { bondColor: "grey", bondScale: 0.5, color: "myScheme" });
+
+                        if (selectedRepresentation === "backbone" || selectedRepresentation === "Licorice") {
+                            stage.setParameters({ backgroundColor: "white" });
+                        }
+                    }
+
+                    // Sync with dat.GUI
+                    nglGui.guiParams.representation = selectedRepresentation;
+                };
+
+                representationDropdown.removeEventListener('change', handleRepresentationChange);
+                representationDropdown.addEventListener('change', handleRepresentationChange);
+
+                nglGui.gui.__controllers.forEach(controller => {
+                    if (controller.property === 'representation') {
+                        controller.onChange(value => {
+                            representationDropdown.value = value;
+                        });
+                    }
+                });
+
+                representationDropdown.value = 'cartoon';  // Set the default representation
+                representationDropdown.dispatchEvent(new Event('change'));
+            }
+        }
+
+        function myColorScheme(atom) {
+            if (!atom.index)
+                return [0, 0, 0]; // black for no pathogenicity (shouldn't happen)
+
+            const pathogenicityValue = atom.atomStore.bfactor[atom.index];
+
+            if (pathogenicityValue > 0.775) {
+                return [1, 0, 0] // red for very high pathogenicity
+            } else if (pathogenicityValue < 0.77 && pathogenicityValue > 0.565) {
+                return [1, 0.55, 0]; // orange for high pathogenicity
+            } else if (pathogenicityValue < 0.57 && pathogenicityValue > 0.34) {
+                return [1, 1, 0]; // yellow for medium pathogenicity
+            } else {
+                return [0, 0, 1]; // blue for low pathogenicity
+            }
+        }
+
+        function clearUI(uniprot_Id) {
+            clearAndReinstantiate();
+
+            if (uniprot_Id in Object.keys(document.getElementById('titleHidden').innerHTML)) {
+                document.getElementById('ProteinText').innerHTML = "Protein Name: " + document.getElementById('titleHidden').innerHTML[uniprot_Id] + " PDB Visualization and &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Heat Maps (Quadrants)"
+            }
+            else {
+                document.getElementById('ProteinText').innerHTML = "Protein Name: " + uniprot_Id + " PDB Visualization  and &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Heat Maps (Quadrants)"
+            }
+        }
+
+        // Helper function to create Blob URL
+        function createBlobUrl(blob) {
+            const pdbBlobUrl = URL.createObjectURL(blob);
+            if (!pdbBlobUrl) {
+                throw new Error('Failed to create blob URL');
+            }
+            return pdbBlobUrl;
+        }
+        function sequenceEventListener(protein_sequence, amino_scores) {
+            document.getElementById("DownloadSequenceData").addEventListener("click", function () {
+                // Extract data from formattedAminoString
+                let dataForJson = [];
+                for (let position in amino_scores) {
+                    let pathogenicityValue = getMedian(Object.values(amino_scores[position]));
+                    let pathogenicityAverage = getAverage(Object.values(amino_scores[position]));
+                    let aminoAcid = protein_sequence[parseInt(position) - 1];
+                    dataForJson.push({
+                        "Position": position,
+                        "Amino Acid": aminoAcid,
+                        "Median Pathogenicity": pathogenicityValue.toFixed(2),
+                        "Mean Pathogenicity": pathogenicityAverage.toFixed(2)
+                    });
+                }
+
+                // Create JSON Blob
+                const jsonData = new Blob([JSON.stringify(dataForJson, null, 2)], { type: "application/json" });
+                const jsonUrl = URL.createObjectURL(jsonData);
+                const link = document.createElement("a");
+                link.href = jsonUrl;
+                link.download = "data.json";
+                link.click();
+            });
+        }
+        function sequenceEventListener(protein_sequence, amino_scores) {
+            let btn = document.getElementById("DownloadSequenceData");
+
+            if (!btn) {
+                console.error("The 'DownloadSequenceData' button was not found!");
+                return;
+            }
+
+            btn.removeEventListener("click", handleDownload); // This will ensure no multiple event listeners
+            btn.addEventListener("click", handleDownload);
+
+            function handleDownload() {
+                // Extract data from formattedAminoString
+                let dataForJson = [];
+                for (let position in amino_scores) {
+                    let pathogenicityValue = getMedian(Object.values(amino_scores[position]));
+                    let pathogenicityAverage = getAverage(Object.values(amino_scores[position]));
+                    let aminoAcid = protein_sequence[parseInt(position) - 1];
+                    dataForJson.push({
+                        "Amino Acid": aminoAcid,
+                        "Position": position,
+                        "Median Pathogenicity": pathogenicityValue.toFixed(2),
+                        "Mean Pathogenicity": pathogenicityAverage.toFixed(2)
+                    });
+                }
+
+                // Create JSON Blob
+                const jsonData = new Blob([JSON.stringify(dataForJson, null, 2)], { type: "application/json" });
+                const jsonUrl = URL.createObjectURL(jsonData);
+                const link = document.createElement("a");
+                link.href = jsonUrl;
+                link.download = "data.json";
+                link.click();
+            }
+        }
+       async  function fetchAndFilterAminoData(uniprot_Id) {
+            try {
+                startSpinner2()
+                const response =  await fetch(`/fetchIndividual/${uniprot_Id}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch amino acid data');
+                }
+
+                const chunk = await response.text();
+                const parsedList = JSON.parse(chunk);
+
+                const protein_sequence = parsedList[0];
+                const amino_scores = parsedList[1];
+                sequenceEventListener(protein_sequence, amino_scores)
+                let formattedAminoString = '';
+                formattedAminoString += "<table style='font-size:13px;font-weight:bold'>";  // Increased font size for visibility
+
+                for (let i = 0; i < protein_sequence.length; i += 100) { // 15 groups of 10 = 150
+
+                    // Header row for labels
+                    formattedAminoString += "<tr>";
+                    for (let h = 0; h < 100 && i + h < protein_sequence.length; h += 10) {
+                        formattedAminoString += `<td style="text-align:right;padding-right:10px !important;color:white;font-weight:bold">${i + h + 10}</td>`;
+                    }
+                    formattedAminoString += "</tr>";
+
+                    // Amino acids rows
+                    formattedAminoString += "<tr>";
+                    for (let k = 0; k < 100 && i + k < protein_sequence.length; k += 10) {
+                        formattedAminoString += "<td>";
+                        formattedAminoString += "&nbsp";  // Two spaces at the beginning
+                        for (let l = 0; l < 10 && i + k + l < protein_sequence.length; l++) {
+                            let position = (i + k + l + 1).toString();
+                            let aminoAcid = protein_sequence[i + k + l];
+                            let pathogenicityValue = getMedian(Object.values(amino_scores[position]));
+                            let pathogenicityAverage = getAverage(Object.values(amino_scores[position]));
+                            // This will format the value to 2 decimal places.
+                            if (pathogenicityValue >= 0.775) {
+                                let tooltipText = `Pathogenicity: Highly Pathogenic!\nMedian Pathogenicity: ${pathogenicityValue.toFixed(2)}\nMean Pathogenicity: ${pathogenicityAverage.toFixed(2)}\nAmino Acid:${aminoAcid}${position}`;
+                                formattedAminoString += `<span style="color:red" class="tooltiptext" title="${tooltipText}">${aminoAcid}&nbsp;</span>`;
+                            } else if (pathogenicityValue < 0.775 && pathogenicityValue >= 0.565) {
+                                let tooltipText = `Pathogenicity: Fully Pathogenic\nMedian Pathogenicity: ${pathogenicityValue.toFixed(2)}\nMean Pathogenicity: ${pathogenicityAverage.toFixed(2)}\nAmino Acid:${aminoAcid}${position}`;
+                                formattedAminoString += `<span style="color:darkorange" class="tooltiptext" title="${tooltipText}">${aminoAcid}&nbsp;</span>`;
+                            } else if (pathogenicityValue < 0.565 && pathogenicityValue > 0.34) {
+                                let tooltipText = `Pathogenicity: Mild/Ambiguous\nMedian Pathogenicity: ${pathogenicityValue.toFixed(2)}\nMean Pathogenicity: ${pathogenicityAverage.toFixed(2)}\nAmino Acid:${aminoAcid}${position}`;
+                                formattedAminoString += `<span style="color:yellow" class="tooltiptext" title="${tooltipText}">${aminoAcid}&nbsp;</span>`;
+                            } else {
+                                let tooltipText = `Pathogenicity: Non-Pathogenic\nMedian Pathogenicity: ${pathogenicityValue.toFixed(2)}\nMean Pathogenicity: ${pathogenicityAverage.toFixed(2)}\nAmino Acid:${aminoAcid}${position}`;
+                                formattedAminoString += `<span style="color:blue" class="tooltiptext" title="${tooltipText}">${aminoAcid}&nbsp;</span>`;
+                            }
+
+                        }
+                        formattedAminoString += "&nbsp;";  // Two spaces at the end
+                        formattedAminoString += "</td>";
+                    }
+                    formattedAminoString += "</tr>";
+                }
+
+                formattedAminoString += "</table>";
+
+
+                document.getElementById('aminoDataContainer').innerHTML = formattedAminoString;
+                stopSpinner2()
+            } catch (error) {
+                stopSpinner2();
+                console.error("An error occurred:", error);
+            }
+        }
+        /*   Potential future feature to map letters to their 3D coordinates
+        function generateAminoAcidTo3DMapping(structure) {
+            let mapping = {};
+            var j = structure.residueStore.count
+            for (let i = 0; i < j; i++) {
+                const start = structure.residueStore.atomOffset[i];
+
+                const x = structure.atomStore.x[start];
+                const y = structure.atomStore.y[start];
+                const z = structure.atomStore.z[start];
+
+                const residueNo = structure.residueStore.resno[i];
+
+                mapping[residueNo] = { x, y, z };  // Storing the coordinates
+            }
+
+            return mapping;
+        }
+        var aminoAcidTo3DMapping = generateAminoAcidTo3DMapping(comp.structure)
+        // Assuming each amino acid is a span with a data attribute for its position.
+        const aminoAcids = document.querySelectorAll("span.aminoAcid");
+
+        aminoAcids.forEach(aminoAcid => {
+            aminoAcid.addEventListener("click", function (event) {
+                const position = event.target.getAttribute("data-position");
+                const coordinates = aminoAcidTo3DMapping[position];
+
+                focusOnMolecule(coordinates);
+            });
+        });
+        */
+        async function fetchPDBAndVisualize(uniprot_Id) {
+            try {
+                clearUI(uniprot_Id);
+
+                const response = await fetch(`/fetchPDB/${uniprot_Id}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+
+                const pdbBlob = await response.blob();
+                const pdbBlobUrl = createBlobUrl(pdbBlob); // Assuming createBlobUrl is synchronous
+                const comp = await stage.loadFile(pdbBlobUrl, { defaultRepresentation: true, ext: "pdb" });
+
+
+                configureRepresentation(comp);
+
+
+                // Fetch and display amino acid data
+                await fetchAndFilterAminoData(uniprot_Id);
+                stopSpinner();
+
+                document.getElementById("downloadPDB").addEventListener("click", function () {
+                    // Assuming pdbBlobUrl is available in this scope
+                    const link = document.createElement("a");
+                    link.href = pdbBlobUrl; // Replace with your actual pdbBlobUrl
+                    link.download = "data.pdb";
+                    link.click();
+                });
+            } catch (error) {
+                console.error('Problem with fetch operation:', error);
+            }
+        }
+
+        function focusOnMolecule(coordinates) {
+            // Ensure the coordinates are valid
+            if (coordinates) {
+                stage.animationControls.zoomMove(coordinates, undefined, 500);
+            }
+        }
+
+
+        const div = document.getElementById('viewport');
+        const secondChild = div.children[1];
+        div.removeChild(secondChild);
+
+
+        const tooltip = document.createElement('div');
+        tooltip.style.position = 'absolute';
+        tooltip.style.display = 'none';
+        if (stage.parameters.backgroundColor === "white") {
+            tooltip.style.color = "black";
+        } else {
+            tooltip.style.color = "white";
+        }
+        tooltip.style.padding = '5px';
+        document.body.appendChild(tooltip);
+        stage.signals.hovered.add(function (pickingProxy) {
+            if (pickingProxy && pickingProxy.atom) {
+                const atom = pickingProxy.atom;
+                tooltip.innerHTML = `Atom: ${atom} Pathogenicity: ${atom.bfactor}`;
+                tooltip.style.left = `${pickingProxy.canvasPosition.x + 275}px`;
+                if (pickingProxy.canvasPosition.y > 500) {
+                    tooltip.style.top = `${pickingProxy.canvasPosition.y - 100}px`;
+                }
+                tooltip.style.top = `${pickingProxy.canvasPosition.y}px`;
+                tooltip.style.display = 'block';
+            } else {
+                tooltip.style.display = 'none';
+            }
+        });
+
+
+        function getInfoFromResidueSel(residueSel) {
+            if (!component || !component.structure) {
+                console.error("Component or structure not loaded");
+                return null;
+            }
+
+            const residues = residueSel.split(',');
+            const residueInfo = {};
+
+            for (const residue of residues) {
+                // The residue index can be directly accessed in the NGL structure object
+                const residueObject = component.structure.getResidueIndex(residue);
+                if (residueObject) {
+                    const residueInfoData = {
+                        name: residueObject.getAtomName(),
+                        type: residueObject.resname,
+                        location: residueObject.index,
+                        value: residueObject.bfactor
+                    };
+                    residueInfo[residue] = residueInfoData;
+                }
+            }
+            return residueInfo;
+        }
+
+
+
+        function clearAndReinstantiate() {
+            // Destroy the GUI.
+            if (nglGui && nglGui.gui) {
+                nglGui.gui.destroy();
+            }
+
+            // Remove all components from the stage.
+            if (stage) {
+                stage.eachComponent(component => stage.removeComponent(component));
+            }
+            document.getElementById('ProteinText').innerHTML = "Protein Name: " + uniprot_Id;
+
+            component = null;
+            firstAtomIndex = null;
+            stage.signals.hovered.removeAll();
+            const div = document.getElementById('viewport');
+            nglGui = new NGLGuiHandler();
+
+
+
+
+            // Add a MutationObserver to the div element
+            const observer = new MutationObserver(function (mutations) {
+                // Check if a second child has been added to the div element
+                if (div.children.length >= 2) {
+                    // Remove the second child
+                    div.removeChild(div.children[1]);
+                }
+            });
+
+            // Observe the div element for changes
+            observer.observe(div, { childList: true });
+
+            // Create a tooltip element
+            const tooltip = document.createElement('div');
+            tooltip.style.position = 'absolute';
+            tooltip.style.display = 'none';
+            tooltip.style.background = 'rgba(255, 255, 255, 0.45)'; // Make the tooltip transparent
+
+
+            tooltip.style.padding = '5px';
+            document.body.appendChild(tooltip);
+
+            // Add a listener to the stage's `hovered` signal
+            stage.signals.hovered.add(function (pickingProxy) {
+                if (pickingProxy && pickingProxy.atom) {
+                    // Get the atom
+                    const atom = pickingProxy.atom;
+
+
+                    const position = atom.residue.resno;
+                    const aminoAcid = atom.resname.toString()[0]
+                    const pathogenicity = atom.bfactor.toFixed(2);
+                    //const pathogenic =
+                    //  atom.bfactor > 0.775 ? "Extremely Pathogenic" :
+                    //    atom.bfactor > 0.565 ? "Pathogenic" :
+                    //      atom.bfactor > 0.34 ? "Ambiguous" :
+                    //        "Benign";
+
+                    if (stage.parameters.backgroundColor === "white") {
+                        tooltip.style.color = "black";
+                    } else {
+                        tooltip.style.color = "white";
+                    }
+                    tooltip.innerHTML = `
+                                              ${aminoAcid}${position}
+                                              PScore= ${pathogenicity}`
+
+
+                    // Position the tooltip
+                    tooltip.style.left = `${pickingProxy.canvasPosition.x + 325}px`;
+                    tooltip.style.top = `${pickingProxy.canvasPosition.y + 165}px`;
+
+                    tooltip.style.display = 'block';
+                } else {
+                    tooltip.style.display = 'none';
+                }
+            });
+
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            const proteinImage = document.getElementById("proteinImage");
+            proteinImage.addEventListener("load", function () {
+                // When the image is loaded, hide the spinner and display the image.
+                this.previousElementSibling.style.display = "none";  // Hide spinner
+                this.style.display = "block";  // Show image
+            });
+        });
+        function hideTooltip() {
+            var tooltipElement = document.getElementById('tooltip'); // Assuming 'tooltip' is the ID of your tooltip element
+            if (tooltipElement) {
+                tooltipElement.style.display = 'none'; // This hides the tooltip
+            }
+        }
+    </script>
+</body>
+
+</html>

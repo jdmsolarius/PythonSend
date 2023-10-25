@@ -1,0 +1,210 @@
+
+/* styles for validation helpers */
+.field-validation-error {
+    color: #b94a48;
+}
+
+.field-validation-valid {
+    display: none;
+}
+
+input.input-validation-error {
+    border: 1px solid #b94a48;
+}
+
+input[type="checkbox"].input-validation-error {
+    border: 0 none;
+}
+
+.validation-summary-errors {
+    color: #b94a48;
+}
+.p
+{
+  margin-top:0px;
+    margin-bottom:0px;
+}
+.validation-summary-valid {
+    display: none;
+}
+
+.container
+{
+    margin-top:50px !important;
+    margin-left:400px!important;
+    padding-left:2px !important;
+    padding:2px !important
+}
+#gui-container .dg.main .cr.number input[type=text] {
+    width: 150px;
+}
+
+#gui-container .dg.main .c .property-name {
+    font-size: 125% !important
+}
+
+#viewport {
+    width: 500px;
+    height: 400px;
+}
+
+#pdb-container {
+    margin: 20px 0; /* top and bottom margin */
+    flex: 1;
+    max-width: 650px;
+}
+
+#ImageContainer img {
+    width: 1400px; /* increased width */
+    max-width: 100%;
+}
+
+.gui-container
+#gui-container .dg.main .c .cr.function {
+    font-size: 125% !important /* Adjusting width */
+}
+
+#gui-container .dg.main .c .property-name {
+    width: 20%; /* Adjusting width of labels */
+}
+
+#pdb-container {
+    flex: 1.2; /* slightly larger space for the viewer */
+}
+
+#pdb-container {
+    position: relative;
+}
+.h2
+{
+    margin-top:5px;
+    margin-bottom:2.5px;
+}
+#gui-container {
+    position: absolute;
+    right: 600px;
+    top: 0;
+}
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+.NGL.Widget {
+    display: none !important;
+}
+/* Tooltip container */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+.NGL.Widget {
+    display: none !important;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 80px;
+    background-color: white;
+    color: #000;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -40px;
+    border: 1px solid #888;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* Tooltip arrow */
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: white transparent transparent transparent;
+        }
+
+/* Show tooltip text on hover */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+.spinner {
+    border: 16px solid #f3f3f3;
+    border-top: 16px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 2s linear infinite;
+}
+.download-button-container {
+    margin-top: 20px; 
+    margin-bottom: 20px;
+}
+.container {
+    margin-left: -150px;
+    margin-top:35px;
+}
+.button-row {
+    display: flex;
+    align-items: center; /* Ensures vertical alignment */
+    justify-content: start; /* Starts the buttons from the beginning of the container */
+}
+
+.button-row button {
+    margin-right: 10px; /* Adds spacing between the buttons */
+}
+.my-4 {
+    margin-top: 10px; /* Move the search area up */
+}
+
+.form-label,
+#uniprot_Id {
+    margin-bottom: 0;
+}
+
+#uniprot_Id {
+    flex-grow: 1;
+}
+
+.dg .property-name {
+    font: bold;
+    font-size: 12.5px
+}
+
+.h2 {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+body {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 280px;
+}

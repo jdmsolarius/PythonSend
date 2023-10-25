@@ -1,0 +1,2 @@
+[console_scripts]
+pymissense = missense.missense:_main_
